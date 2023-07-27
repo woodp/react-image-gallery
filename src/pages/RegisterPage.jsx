@@ -4,6 +4,8 @@ import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../hooks/auth/useAuth"
+import { useDispatch } from "react-redux"
+import { finishLoading, initLoading } from "../store/slices/loadingSlice"
 
 
 const schema = yup
@@ -19,12 +21,15 @@ const schema = yup
   .required()
 
 export default function RegisterPage() {
-  const { doRegister } = useAuth();
+  const dispatch = useDispatch()
+  const { doRegister } = useAuth()
   const navigate = useNavigate()
   const { register, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(schema) })
 
   const onSubmit = (data) => {
+    dispatch(initLoading())
     doRegister(data.firstName, data.lastName, data.email, data.password)
+    dispatch(finishLoading())
     navigate('/')
   }
 

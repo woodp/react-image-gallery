@@ -2,15 +2,20 @@ import { useNavigate } from "react-router-dom";
 import { TEInput, TERipple } from "tw-elements-react";
 import { useForm } from "react-hook-form"
 import { useAuth } from "../hooks/auth/useAuth";
+import { useDispatch } from "react-redux";
+import { finishLoading, initLoading } from "../store/slices/loadingSlice";
 
 const LoginPage = () => {
-  const navigate = useNavigate();
-  const { doLogin } = useAuth();
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { doLogin } = useAuth()
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors } } = useForm()
 
   const onSubmit = (data) => {
-    doLogin(data.loginEmail, data.loginPassword);
+    dispatch(initLoading())
+    doLogin(data.loginEmail, data.loginPassword)
+    dispatch(finishLoading())
     navigate('/')
   }
 
