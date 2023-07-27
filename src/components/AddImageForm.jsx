@@ -6,7 +6,8 @@ import { useAuth } from "../hooks/auth/useAuth";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup"
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setImages } from "../store/slices/imagesSlice";
 
 const SUPPORTED_FORMATS = [
   "image/jpg",
@@ -29,23 +30,29 @@ const schema = yup
   .required()
 
 const AddImageForm = () => {
+  const [submitButtonText, setSubmitButtonText] = useState("Save Image")
   const [showModal, setShowModal] = useState(false)
   const [submitDisabled, setSubmitDisabled] = useState(false)
+  const dispatch = useDispatch()
   const { user } = useSelector(state => state.auth)
   const { saveImages, uploadFile } = useImageStore()
-  const { register, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(schema) })
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({ resolver: yupResolver(schema) })
 
   const onImageSubmit = async (data) => {
     setSubmitDisabled(true)
+    setSubmitButtonText("Uploading...")
     try {
       const url = await uploadFile(data.imageFile[0])
-
-      await saveImages(user.email, data.imgageTitle, url)
+      const images = await saveImages(user.email, data.imgageTitle, url)
+      dispatch(setImages(images))
+      reset()
       setShowModal(false)
       setSubmitDisabled(false)
+      setSubmitButtonText("Save Image")
     } catch(e){
       toast.error(e.message)
       setSubmitDisabled(false)
+      setSubmitButtonText("Save Image")
     }
   }
 
@@ -141,7 +148,7 @@ const AddImageForm = () => {
                     type="submit"
                     className="ml-1 inline-block rounded bg-primary px-6 pb-2 pt-2.5 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)]"
                   >
-                    Save image
+                    {submitButtonText}
                   </button>
                 </TERipple>
               </TEModalFooter>
